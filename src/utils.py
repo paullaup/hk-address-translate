@@ -30,6 +30,14 @@ def extract_district(address: str):
     district = re.findall(f'\\b({"|".join(district_list)})\\b', address.lower())
     return district[len(district) - 1] if district else None
 
+def extract_sub_district(address: str):
+    address = address.upper()
+    subDistrictList = ["CENTRAL", "SHEUNG WAN", "MID-LEVELS", "SAI YING PUN", "KENNEDY TOWN", "WESTERN DISTRICT", "PEAK", "SHEK TONG TSUI", "ADMIRALTY", "NORTH POINT", "QUARRY BAY", "TAI KOO", "SAI WAN HO", "SHAU KEI WAN", "CHAI WAN", "SIU SAI WAN", "TIN HAU", "BREAEMAR HILL", "POK FU LAM", "AP LEI CHAU", "WONG CHUK HANG", "TAI TAM", "STANLEY", "SHOUSON HILL", "REPULSE BAY", "CHUNG HOM KOK", "SHEK O", "ABERDEEN", "WAN CHAI", "CAUSEWAY BAY", "HAPPY VALLEY", "TAI HANG", "SO KON PO", "JARDINE'S LOOKOUT", "HO MAN TIN", "TO KWA WAN", "KOWLOON TONG", "KOWLOON CITY", "HUNG HOM", "MA TAU KOK", "MA TAU WAI", "KAI TAK", "BEACON HILL", "KWUN TONG", "LAM TIN", "NGAU TAU KOK", "JORDAN VALLEY", "PING SHEK", "KOWLOON BAY", "SAU MAU PING", "YAU TONG", "LEI YUE MUN", "SHAM SHUI PO", "SHEK KIP MEI", "MEI FOO", "CHEUNG SHA WAN", "YAU YAT TSUEN", "TAI WO PING", "STONECUTTERS ISLAND", "WONG TAI SIN", "LOK FU", "SAN PO KONG", "NGAU CHI WAN", "TUNG TAU", "WANG TAU HOM", "DIAMOND HILL", "TSZ WAN SHAN", "MONG KOK", "TSIM SHA TSUI", "JORDAN", "TAI KOK TSUI", "PRINCE EDWARD", "YAU MA TEI", "WEST KOWLOON RECLAMATION", "KING'S PARK", "DISCOVERY BAY", "TUNG CHUNG", "CHEUNG CHAU", "LANTAU ISLAND", "PENG CHAU", "LAMMA ISLAND", "FANLING", "SHEUNG SHUI", "LUEN WO HUI", "SHEK WU HUI", "SHA TAU KOK", "LUK KENG", "WU KAU TANG", "SAI KUNG", "TSEUNG KWAN O", "CLEAR WATER BAY", "TAI MONG TSAI", "HANG HAU", "TIU KENG LENG", "MA YAU TONG", "SHA TIN", "FO TAN", "TAI WAI", "SIU LEK YUEN", "MA LIU SHUI", "WU KAI SHA", "MA ON SHAN", "TAI PO", "TAI WO", "TAI PO MARKET", "TAI PO KAU", "TAI MEI TUK", "SUEN WAN", "CHEUNG MUK TAU", "KEI LING HA", "TSUEN WAN", "LEI MUK SHUE", "TING KAU", "SHAM TSENG", "TSING LUNG TAU", "MA WAN", "SUNNY BAY", "TUEN MUN", "SIU HONG", "TAI LAM CHUNG", "SO KWUN WAT", "LAM TEI", "YUEN LONG", "TIN SHUI WAI", "KAM TIN", "HUNG SHUI KIU", "HA TSUEN", "LAU FAU SHAN", "SAN TIN", "LOK MA CHAU", "SHEK KONG", "PAT HEUNG", "KWAI CHUNG", "TSING YI"]
+    subdistrict = re.findall(f'\\b({"|".join(subDistrictList)})\\b', address)
+    for item in reversed(subdistrict):
+        if(check_if_complete_word_exist(item, address)):
+            return item
+
 def standardize_address(address: str):
     """
     this function is used to replace word for matching address like BLK into it's full form like block and Twr into Block
@@ -110,7 +118,7 @@ def format_road_name(address: str):
         address = address.upper().replace(original, new_text)
     return address
 
-def subDistrictToDistrict(subDistrict: str):
+def sub_district_to_district(subDistrict: str):
     sub_district_map = {
     "CENTRAL": "Central and Western",
     "SHEUNG WAN": "Central and Western",
