@@ -1,5 +1,5 @@
 import utils
-import re
+import os, re, json
 
 def count_matched(full_address, address_component_dict) -> int:
     """
@@ -23,6 +23,30 @@ def translate_address(full_address: str) -> dict:
     :param full_address: The complete address string.
     :return: A dictionary with translated address components.
     """
+    #find the district for finding the json file to use
     district = utils.extract_district(full_address)
     if not district:
-        sub_district = utils.extrac
+        sub_district = utils.extract_sub_district(full_address)
+        if sub_district:
+            district = utils.sub_district_to_district(sub_district)
+        else:
+            raise ValueError("District or Sub-district not found in the address.")
+
+    #find the json file path according to the district
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if(district.lower() == "central and western"):
+        district = "central & western"
+    districtReformat = "_".join(district.split(" ")).lower()
+    file_path = project_root / "data" / f"als_addresses_({districtReformat}_district).geojson"
+    with open(file_path, "r", encoding="utf-8") as file:
+        collectionList = json.load(file).get("features", [])
+        match = {"matchCount": 0}
+        for collection in collectionList: 
+            engAddress = collection["properties"]["Address"]["PremisesAddress"]["EngPremisesAddress"]
+            formatedEngAddress = utils.flatten_dict(engAddress, ['EngDistrict', 'Region', 'EngDistrict'])
+            match_count = count_matched(full_address, formatedEngAddress)
+            if(match_count > match["matchCount"]):
+                match = collection["properties"]["Address"]["PremisesAddress"]["ChiPremisesAddress"]
+                match["matchCount"] = match_count
+                match["matchRate"] = (match_count/len(formatedEngAddress["ComponentsKeys"]))
+        return match    
