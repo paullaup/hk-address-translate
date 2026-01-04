@@ -4,18 +4,18 @@ def flatten_dict(dictionary: dict, excludedKeys: list) -> dict:
     """
     make the dictionary one level only 
     """
-    result = {'ComponentsKeys': []}
+    result = {}
     for key in dictionary.keys():
         if(key in excludedKeys):
             continue
         elif(type(dictionary[key]) == type(dict())):
             inner = flatten_dict(dictionary[key], excludedKeys)
-            result["ComponentsKeys"].extend(inner["ComponentsKeys"])
-            del inner["ComponentsKeys"]
+            # result["ComponentsKeys"].extend(inner["ComponentsKeys"])
+            # del inner["ComponentsKeys"]
             result.update(inner)
         else:
             result[key] = dictionary[key]
-            result["ComponentsKeys"].append(key)
+            # result["ComponentsKeys"].append(key)
     return result
 
 def extract_district(address: str): 
