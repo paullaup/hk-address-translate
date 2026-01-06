@@ -76,6 +76,9 @@ def create_buildings_table(data_dir, output_file):
     # Create DataFrame
     df = pd.DataFrame(all_buildings)
     
+    #change all column names to lowercase
+    df.columns = [col.lower() for col in df.columns]
+
     # Save to CSV
     df.to_csv(output_file, index=False)
     print(f"Data saved to {output_file}")
