@@ -27,6 +27,7 @@ def extract_address_components(file_path):
     Extracts address components from a single GeoJSON file.
     """
     print(f'Extracting address components from {file_path}...')
+    count = 0
     df = pd.DataFrame({'Column': [], 'Value': []})
     with open(file_path, "r", encoding="utf-8") as file:
         collectionList = json.load(file).get("features", [])
@@ -34,11 +35,15 @@ def extract_address_components(file_path):
             collection = collectionList[i]  
             #collect the data from the json 
             engAddress = collection["properties"]["Address"]["PremisesAddress"]["EngPremisesAddress"]
-            formatedEngAddress = flatten_dict(engAddress, ['BlockDescriptorPrecedenceIndicator', 'BlockNo', 'BuildingNoFrom', 'BuildingNoTo', 'EngDistrict', 'Region', 'PhaseNo'])
+            formatedEngAddress = flatten_dict(engAddress, ['BlockDescriptorPrecedenceIndicator', 'BlockNo', 'BuildingNoFrom', 'BuildingNoTo', 'Region', 'PhaseNo'])
             for key in formatedEngAddress.keys():
                 df = pd.concat([df, pd.DataFrame({'Column': [key], 'Value': [formatedEngAddress[key]]})], ignore_index=True)
+                
+                count += 1
+                if(count > 1000):
+                    df.drop_duplicates(inplace=True)
+                    count = 0
             
-    df.drop_duplicates(inplace=True)
     print(f'Extracted {len(df)} unique address components.')
     return df
 

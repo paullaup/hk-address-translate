@@ -10,9 +10,9 @@ def flatten_address(address_dict, prefix=""):
     flat = {}
     for key, value in address_dict.items():
         if isinstance(value, dict):
-            flat.update(flatten_address(value, f"{prefix}{key}_"))
+            flat.update(flatten_address(value, prefix))
         else:
-            flat[f"{prefix}{key}"] = value
+            flat[f"{prefix}_{key}"] = value
     return flat
 
 def extract_building_data(file_path):
@@ -43,12 +43,12 @@ def extract_building_data(file_path):
         
         # Flatten ChiPremisesAddress
         chi_addr = address.get('ChiPremisesAddress', {})
-        chi_flat = flatten_address(chi_addr, "chi_")
+        chi_flat = flatten_address(chi_addr, "chi")
         building.update(chi_flat)
         
         # Flatten EngPremisesAddress
         eng_addr = address.get('EngPremisesAddress', {})
-        eng_flat = flatten_address(eng_addr, "eng_")
+        eng_flat = flatten_address(eng_addr, "eng")
         building.update(eng_flat)
         
         # GeoAddress
@@ -76,8 +76,13 @@ def create_buildings_table(data_dir, output_file):
     # Create DataFrame
     df = pd.DataFrame(all_buildings)
     
+    #change all column names to lowercase
+    df.columns = [col.lower() for col in df.columns]
+
     # Save to CSV
-    df.to_csv(output_file, index=False)
+    df['v-bkey'] = df.index
+    df.set_index('v-bkey', inplace=True)
+    df.to_csv(output_file, index=True)
     print(f"Data saved to {output_file}")
     
     # Print column info
