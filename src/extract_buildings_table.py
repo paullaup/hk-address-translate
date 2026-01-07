@@ -10,7 +10,7 @@ def flatten_address(address_dict, prefix=""):
     flat = {}
     for key, value in address_dict.items():
         if isinstance(value, dict):
-            flat.update(flatten_address(value, f"{prefix}{key}_"))
+            flat.update(flatten_address(value, f"{key}_"))
         else:
             flat[f"{prefix}{key}"] = value
     return flat
@@ -80,7 +80,9 @@ def create_buildings_table(data_dir, output_file):
     df.columns = [col.lower() for col in df.columns]
 
     # Save to CSV
-    df.to_csv(output_file, index=False)
+    df['v-bkey'] = df.index
+    df.set_index('v-bkey', inplace=True)
+    df.to_csv(output_file, index=True)
     print(f"Data saved to {output_file}")
     
     # Print column info
