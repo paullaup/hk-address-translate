@@ -10,9 +10,9 @@ def flatten_address(address_dict, prefix=""):
     flat = {}
     for key, value in address_dict.items():
         if isinstance(value, dict):
-            flat.update(flatten_address(value, f"{prefix}_"))
+            flat.update(flatten_address(value, prefix))
         else:
-            flat[f"{prefix}{key}"] = value
+            flat[f"{prefix}_{key}"] = value
     return flat
 
 def extract_building_data(file_path):
@@ -43,12 +43,12 @@ def extract_building_data(file_path):
         
         # Flatten ChiPremisesAddress
         chi_addr = address.get('ChiPremisesAddress', {})
-        chi_flat = flatten_address(chi_addr, "chi_")
+        chi_flat = flatten_address(chi_addr, "chi")
         building.update(chi_flat)
         
         # Flatten EngPremisesAddress
         eng_addr = address.get('EngPremisesAddress', {})
-        eng_flat = flatten_address(eng_addr, "eng_")
+        eng_flat = flatten_address(eng_addr, "eng")
         building.update(eng_flat)
         
         # GeoAddress
