@@ -10,7 +10,7 @@ def flatten_address(address_dict, prefix=""):
     flat = {}
     for key, value in address_dict.items():
         if isinstance(value, dict):
-            flat.update(flatten_address(value, f"{key}_"))
+            flat.update(flatten_address(value, f"{prefix}_"))
         else:
             flat[f"{prefix}{key}"] = value
     return flat
