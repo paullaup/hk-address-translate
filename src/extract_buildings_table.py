@@ -79,6 +79,19 @@ def create_buildings_table(data_dir, output_file):
     #change all column names to lowercase
     df.columns = [col.lower() for col in df.columns]
 
+    #order the columns according to the logic of full address construction
+    order = '''v-bkey, 
+        northing, easting, latitude, longitude, 
+        eng_buildingnofrom, eng_buildingnoto, eng_blockno, eng_blockdescriptor, eng_blockdescriptorprecedenceindicator, eng_buildingname,
+        eng_phaseno, eng_phasename, eng_estatename, eng_villagename, eng_locationname, 
+        eng_streetname, eng_engdistrict, eng_region,
+        chi_region, chi_chidistrict, chi_streetname, chi_villagename, chi_estatename, chi_locationname, 
+        chi_phasename, chi_phaseno, chi_buildingname, chi_blockdescriptor, chi_blockno, 
+        chi_buildingnoto, chi_buildingnofrom,
+        geo_address, eng_full_address, chi_full_address'''
+    ordered_cols = [col.strip() for col in order.split(',')]
+    df = df[[col for col in ordered_cols if col in df.columns]]
+
     # calculate the full address by concatenating all column starting with 'eng_'
     eng_address_cols = [col for col in df.columns if col.startswith('eng_')]
     df['eng_full_address'] = df[eng_address_cols].apply(lambda x: ' '.join(x.dropna().astype(str)), axis=1)
