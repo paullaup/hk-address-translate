@@ -79,6 +79,12 @@ def create_buildings_table(data_dir, output_file):
     #change all column names to lowercase
     df.columns = [col.lower() for col in df.columns]
 
+    # calculate the full address by concatenating all column starting with 'eng_'
+    eng_address_cols = [col for col in df.columns if col.startswith('eng_')]
+    df['eng_full_address'] = df[eng_address_cols].apply(lambda x: ' '.join(x.dropna().astype(str)), axis=1)
+    chi_address_cols = [col for col in df.columns if col.startswith('chi_')]
+    df['chi_full_address'] = df[chi_address_cols].apply(lambda x: ' '.join(x.dropna().astype(str)), axis=1)
+
     # Save to CSV
     df['v-bkey'] = df.index
     df.set_index('v-bkey', inplace=True)
