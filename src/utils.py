@@ -37,6 +37,13 @@ def extract_sub_district(address: str):
     for item in reversed(subdistrict):
         if(check_if_complete_word_exist(item, address)):
             return item
+        
+def extract_block(address: str):
+    address = address.upper()
+    blockMatch = re.search(r'\bBLOCK\s+([A-Z0-9]*)\b', address, re.IGNORECASE)
+    if blockMatch:
+        return blockMatch.group(1)
+    return None
 
 def standardize_address(address: str):
     """

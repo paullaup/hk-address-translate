@@ -1,7 +1,7 @@
 import utils
 import os, re, json
 
-def count_matched(full_address, address_component_dict) -> int:
+def count_matched(full_address, address_component_dict, block) -> int:
     """
     Count how many components from address_component_dict are present in full_address.
 
@@ -10,7 +10,14 @@ def count_matched(full_address, address_component_dict) -> int:
     :return: The count of matched components.
     """
     match_count = 0
-    for component in address_component_dict.keys():
+    for key in address_component_dict.keys():
+        component = address_component_dict[key]
+
+        if(key == "BlockNo" and block):
+                    if(component.lower() == block.lower()):
+                        matchCount += 1
+                        continue
+
         #check if a full word match exists in the full_address instead of a substring match
         if re.search(r'\b' + re.escape(component) + r'\b', full_address):
             match_count += 1
@@ -31,6 +38,11 @@ def translate_address(full_address: str) -> dict:
             district = utils.sub_district_to_district(sub_district)
         else:
             raise ValueError("District or Sub-district not found in the address.")
+        
+    #extract block number to improve matching accuracy
+    block = utils.extract_block(inputAddress)
+    if(block):
+        inputAddress = inputAddress.lower().replace(block.lower(), '').strip()
 
     #find the json file path according to the district
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,13 +50,18 @@ def translate_address(full_address: str) -> dict:
         district = "central & western"
     districtReformat = "_".join(district.split(" ")).lower()
     file_path = project_root / "data" / f"als_addresses_({districtReformat}_district).geojson"
+
     with open(file_path, "r", encoding="utf-8") as file:
         collectionList = json.load(file).get("features", [])
         match = {"matchCount": 0}
-        for collection in collectionList: 
+        for collection in collectionList:
+
+            #get only the leaf node English address components for better iteration
             engAddress = collection["properties"]["Address"]["PremisesAddress"]["EngPremisesAddress"]
             formatedEngAddress = utils.flatten_dict(engAddress, ['EngDistrict', 'Region', 'EngDistrict'])
-            match_count = count_matched(full_address, formatedEngAddress)
+
+            #count the mached components and update the best match if necessary
+            match_count = count_matched(full_address, formatedEngAddress, block)
             if(match_count > match["matchCount"]):
                 match = collection["properties"]["Address"]["PremisesAddress"]["ChiPremisesAddress"]
                 match["matchCount"] = match_count
