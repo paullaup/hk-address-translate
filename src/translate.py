@@ -1,5 +1,5 @@
 import utils
-import os, re, json
+import os, re, json, pathlib
 
 def count_matched(full_address, address_component_dict, block) -> int:
     """
@@ -11,15 +11,16 @@ def count_matched(full_address, address_component_dict, block) -> int:
     """
     match_count = 0
     for key in address_component_dict.keys():
-        component = address_component_dict[key]
+        component = utils.standardize_address(address_component_dict[key])
 
+        #handle block number separately to improve matching accuracy, as block number is often a substring of the full address and can lead to false positives
         if(key == "BlockNo" and block):
                     if(component.lower() == block.lower()):
-                        matchCount += 1
+                        match_count += 1
                         continue
 
         #check if a full word match exists in the full_address instead of a substring match
-        if re.search(r'\b' + re.escape(component) + r'\b', full_address):
+        if re.search(r'\b' + re.escape(component) + r'\b', full_address, re.IGNORECASE):
             match_count += 1
     return match_count
 
@@ -40,12 +41,12 @@ def translate_address(full_address: str) -> dict:
             raise ValueError("District or Sub-district not found in the address.")
         
     #extract block number to improve matching accuracy
-    block = utils.extract_block(inputAddress)
+    block = utils.extract_block(full_address)
     if(block):
-        inputAddress = inputAddress.lower().replace(block.lower(), '').strip()
+        full_address = full_address.lower().replace(block.lower(), '').strip()
 
     #find the json file path according to the district
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    project_root = pathlib.Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     if(district.lower() == "central and western"):
         district = "central & western"
     districtReformat = "_".join(district.split(" ")).lower()
@@ -65,5 +66,5 @@ def translate_address(full_address: str) -> dict:
             if(match_count > match["matchCount"]):
                 match = collection["properties"]["Address"]["PremisesAddress"]["ChiPremisesAddress"]
                 match["matchCount"] = match_count
-                match["matchRate"] = (match_count/len(formatedEngAddress["ComponentsKeys"]))
+                match["matchRate"] = (match_count/len(formatedEngAddress))
         return match    
