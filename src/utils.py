@@ -1,4 +1,17 @@
-import re, json
+import re, pathlib, os
+
+def get_district_address_json_path(district: str) -> str:
+    #find the json file path according to the district
+    project_root = pathlib.Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    if(district.lower() == "central and western"):
+        district = "central & western"
+    districtReformat = "_".join(district.split(" ")).lower()
+    file_path = project_root / "data" / f"als_addresses_({districtReformat}_district).geojson"
+
+    #check if the file exists before returning the path
+    if not file_path.is_file():
+        raise FileNotFoundError(f"Address data file not found for district: {district}. Expected at: {file_path}")
+    return file_path
 
 def flatten_dict(dictionary: dict, excludedKeys: list) -> dict:
     """

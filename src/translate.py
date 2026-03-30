@@ -1,7 +1,7 @@
 import utils
-import os, re, json, pathlib
+import re, json
 
-def count_matched(full_address, address_component_dict, block) -> int:
+def count_matched(full_address: str, address_component: dict, block: str, input_address_component: dict = {}) -> int:
     """
     Count how many components from address_component_dict are present in full_address.
 
@@ -10,8 +10,14 @@ def count_matched(full_address, address_component_dict, block) -> int:
     :return: The count of matched components.
     """
     match_count = 0
-    for key in address_component_dict.keys():
-        component = utils.standardize_address(address_component_dict[key])
+    for key in address_component.keys():
+        component = utils.standardize_address(address_component[key])
+
+        #check 
+        if(key in input_address_component.keys() and input_address_component[key]):
+             if(not re.search(r'\b' + re.escape(component) + r'\b', full_address, re.IGNORECASE)):
+                return -1
+             
 
         #handle block number separately to improve matching accuracy, as block number is often a substring of the full address and can lead to false positives
         if(key == "BlockNo" and block):
@@ -24,35 +30,21 @@ def count_matched(full_address, address_component_dict, block) -> int:
             match_count += 1
     return match_count
 
-def translate_address(full_address: str) -> dict:
+def translate_address(full_address: str, lookup_file_path: str, address_components: dict) -> dict:
     """
     Translate a full address into its components using predefined dictionaries.
 
     :param full_address: The complete address string.
+    :param lookup_file_path: The file path to the JSON file containing address.
+    :param address_components: A dictionary of address components in specific field to be matched
     :return: A dictionary with translated address components.
-    """
-    #find the district for finding the json file to use
-    district = utils.extract_district(full_address)
-    if not district:
-        sub_district = utils.extract_sub_district(full_address)
-        if sub_district:
-            district = utils.sub_district_to_district(sub_district)
-        else:
-            raise ValueError("District or Sub-district not found in the address.")
-        
+    """ 
     #extract block number to improve matching accuracy
     block = utils.extract_block(full_address)
     if(block):
         full_address = full_address.lower().replace(block.lower(), '').strip()
 
-    #find the json file path according to the district
-    project_root = pathlib.Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    if(district.lower() == "central and western"):
-        district = "central & western"
-    districtReformat = "_".join(district.split(" ")).lower()
-    file_path = project_root / "data" / f"als_addresses_({districtReformat}_district).geojson"
-
-    with open(file_path, "r", encoding="utf-8") as file:
+    with open(lookup_file_path, "r", encoding="utf-8") as file:
         collectionList = json.load(file).get("features", [])
         match = {"matchCount": 0}
         for collection in collectionList:
@@ -62,7 +54,7 @@ def translate_address(full_address: str) -> dict:
             formatedEngAddress = utils.flatten_dict(engAddress, ['EngDistrict', 'Region', 'EngDistrict'])
 
             #count the mached components and update the best match if necessary
-            match_count = count_matched(full_address, formatedEngAddress, block)
+            match_count = count_matched(full_address, formatedEngAddress, block, address_components)
             if(match_count > match["matchCount"]):
                 match = collection["properties"]["Address"]["PremisesAddress"]["ChiPremisesAddress"]
                 match["matchCount"] = match_count
